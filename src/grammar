@@ -1,0 +1,44 @@
+statements      : NEWLINE* expr (NEWLINE expr)* NEWLINE*
+
+expression      : KEYWORD:VAR IDENTIFIER EQUALS expr
+                : IDENTIFIER EQUALS expr
+                : comp-expr
+
+comp-expr       : arith-expr ((=|==|>|>=|<|<=)arith-expr)*
+                
+arith-expr      : term (( PLUS | MINUS) term)*
+
+term            : factor (( MUL | DIV) factor)*
+
+factor          : power
+
+power           : call (POW factor)*
+
+call            : atom (LEFTP (expr ( COMMA expr)*)? RIGHTP)
+
+atom            : NUMBER | IDENTIFIER
+                : LEFTP expr RIGHTP
+                : list-expr
+                : if-expr
+                : for-expr
+                : while-expr
+                : func-def
+
+list-expr       : LSQUARE (expr ( COMMA expr)*)? RSQUARE
+
+if-expr         :KEYWORD:IF expr KEYWORD:THEN expr
+                (KEYWORD:ELIF expr KEYWORD:THEN expr)*
+                (KEYWORD:ELSE expr)?
+
+if-expr         :KEYWORD:IF expr KEYWORD:THEN
+                (expr) 
+
+for-expr        :KEYWORD:FOR IDENTIFIER EQUALS expr KEYWORD:TO expr KEYWORD:THEN expr
+
+while-expr      : KEYWORD:WHILE expr KEYWORD:THEN expr
+
+func-dev        : KEYWORD:FUNC IDENTIFIER?
+                    LEFTP (IDENTIFIER ( COMMA IDENTIFIER)*)? RIGHTP
+                    ARROW expr
+
+
