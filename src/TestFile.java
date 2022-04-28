@@ -1,4 +1,5 @@
-import java.util.List;
+import java.util.ArrayList;
+import java.util.List;  
 import java.util.Scanner;
 
 public class TestFile {
@@ -14,10 +15,12 @@ public class TestFile {
 
       FunctionSymbolTable functionSymbolTable = new FunctionSymbolTable();
 
+      List<Token> tokens = new ArrayList<>();
+
       String text = FileReader.getResourceFileAsString("code.x");
       
       if(text != null){
-        runProgram(text, globalSymbolTable, functionSymbolTable);
+        runProgram(text, globalSymbolTable, functionSymbolTable, tokens);
       }else{
         while(true){
         
@@ -25,29 +28,25 @@ public class TestFile {
           Scanner sc = new Scanner(System.in);
           text = sc.nextLine();
           
-          runProgram(text, globalSymbolTable, functionSymbolTable);
+          runProgram(text, globalSymbolTable, functionSymbolTable, tokens);
         }
       }
 
     }
 
-    public static void runProgram(String text, SymbolTable globalSymbolTable, FunctionSymbolTable functionSymbolTable){
-        // if (text == ""){
-        //   continue;
-        // }
+    public static void runProgram(String text, SymbolTable globalSymbolTable, FunctionSymbolTable functionSymbolTable, List<Token> tokensAssem){
 
         Lexer lexer = new Lexer(text);
         List<Token> tokens = lexer.makeTokens();
-
-        // for (Token token: tokens){
-        //   token.print();
-        // }
         
-        Parser parser = new Parser(tokens, globalSymbolTable, functionSymbolTable);
+        Parser parser = new Parser(tokens, globalSymbolTable, functionSymbolTable, tokensAssem);
         SyntaxTree expression = parser.parse();
 
-        Evaluator evaluator = new Evaluator(expression.getNode(), globalSymbolTable, functionSymbolTable);
-        System.out.println(evaluator.evaluate());
+        Assembly assembly = new Assembly(tokensAssem);
+        assembly.createAssembly();
+
+        //Evaluator evaluator = new Evaluator(expression.getNode(), globalSymbolTable, functionSymbolTable);
+        //System.out.println(evaluator.evaluate());
       
     }
   }

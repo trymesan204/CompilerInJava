@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 import java.util.function.Function;
 
 public class Parser {
@@ -9,11 +10,13 @@ public class Parser {
     SymbolTable symbolTable;
     int advanceCount = 0;
     FunctionSymbolTable functionSymbolTable;
+    List<Token> tokenAssem = new ArrayList<>();
 
-    public Parser(List<Token> tokens, SymbolTable symbolTable, FunctionSymbolTable functionSymbolTable){
+    public Parser(List<Token> tokens, SymbolTable symbolTable, FunctionSymbolTable functionSymbolTable, List<Token> tokenAssem){
         this.tokens = tokens;
         this.symbolTable = symbolTable;
         this.functionSymbolTable = functionSymbolTable;
+        this.tokenAssem = tokenAssem;
         advance();
     }
 
@@ -52,6 +55,7 @@ public class Parser {
         Node elseCase = null;
 
         if(currentToken.matches(TokenType.KEYWORD, "else")){
+            tokenAssem.add(currentToken);
             advance();
 
             if(currentToken.getType() == TokenType.NEWLINE){
@@ -61,6 +65,7 @@ public class Parser {
                 elseCase = statement;
 
                 if(currentToken.matches(TokenType.KEYWORD, "end")){
+                    tokenAssem.add(currentToken);
                     advance();
                 }else{
                     throw new InvalidSyntaxException("Expected 'end'");
@@ -78,6 +83,7 @@ public class Parser {
         Node elseCase = null;
 
         if (currentToken.matches(TokenType.KEYWORD, "elif")){
+            tokenAssem.add(currentToken);
             Node allCases = ifExpressionB();
             elseCase = ((IfNode)allCases).getElseCase();
             cases = ((IfNode)allCases).getCases();
@@ -116,6 +122,7 @@ public class Parser {
             cases.add(condExp);
 
             if (currentToken.matches(TokenType.KEYWORD, "end")){
+                tokenAssem.add(currentToken);
                 advance();
             }else{
                 Node allCasesNode = ifExpressionBOrC();
@@ -302,48 +309,6 @@ public class Parser {
         advance();
 
         return new FuncDefNode(varNameToken, argNameTokens, body);
-
-
-    }
-
-
-
-    public Node atom(){
-        Token token = currentToken;
-
-        if (currentToken.getType() == TokenType.NUMBER){
-            advance();
-            return new NumberNode(token);
-        }else if(currentToken.getType() == TokenType.IDENTIFIER){
-            advance();
-            return new VarAccessNode(token);
-        }else if (currentToken.getType() == TokenType.LEFTP){
-            advance();
-            SyntaxTree expression = expression();
-            if(currentToken.getType() == TokenType.RIGHTP){
-                advance();
-                return expression.getNode();
-            }else{
-                throw new InvalidSyntaxException("Expected ')'");
-            }
-        }else if(currentToken.getType() == TokenType.LSQUARE){
-            Node listExpression = listExpression();
-            return listExpression;
-        }else if(currentToken.matches(TokenType.KEYWORD, "if")){
-            Node ifExpr = ifExpression();
-            return ifExpr;
-        }else if (currentToken.matches(TokenType.KEYWORD, "while")){
-            return whileExpression();
-        }else if (currentToken.matches(TokenType.KEYWORD, "for")){
-            return forExpression();
-        }else if (currentToken.matches(TokenType.KEYWORD, "func")){
-            return funcDef();
-        }else if (currentToken.matches(TokenType.KEYWORD, "else") || 
-                  currentToken.matches(TokenType.KEYWORD, "elif") ||
-                  currentToken.matches(TokenType.KEYWORD, "end")){
-            return null;
-        }
-        throw new InvalidSyntaxException("why wrong?");
     }
 
     public Node listExpression(){
@@ -369,6 +334,47 @@ public class Parser {
         }
         
         return new ListNode(elementNodes);
+    }
+
+
+    public Node atom(){
+        Token token = currentToken;
+
+        if (currentToken.getType() == TokenType.NUMBER){
+            tokenAssem.add(currentToken);
+            advance();
+            return new NumberNode(token);
+        }else if(currentToken.getType() == TokenType.IDENTIFIER){
+            advance();
+            return new VarAccessNode(token);
+        }else if (currentToken.getType() == TokenType.LEFTP){
+            advance();
+            SyntaxTree expression = expression();
+            if(currentToken.getType() == TokenType.RIGHTP){
+                advance();
+                return expression.getNode();
+            }else{
+                throw new InvalidSyntaxException("Expected ')'");
+            }
+        }else if(currentToken.getType() == TokenType.LSQUARE){
+            Node listExpression = listExpression();
+            return listExpression;
+        }else if(currentToken.matches(TokenType.KEYWORD, "if")){
+            tokenAssem.add(currentToken);
+            Node ifExpr = ifExpression();
+            return ifExpr;
+        }else if (currentToken.matches(TokenType.KEYWORD, "while")){
+            return whileExpression();
+        }else if (currentToken.matches(TokenType.KEYWORD, "for")){
+            return forExpression();
+        }else if (currentToken.matches(TokenType.KEYWORD, "func")){
+            return funcDef();
+        }else if (currentToken.matches(TokenType.KEYWORD, "else") || 
+                  currentToken.matches(TokenType.KEYWORD, "elif") ||
+                  currentToken.matches(TokenType.KEYWORD, "end")){
+            return null;
+        }
+        throw new InvalidSyntaxException("why wrong?");
     }
 
     public Node call(){
@@ -422,6 +428,7 @@ public class Parser {
             advance();
             Node right = factor();
             left = new BinaryOperatorNode(left, operatorToken, right);
+            tokenAssem.add(operatorToken);
         }
         return left;
     }
@@ -436,6 +443,7 @@ public class Parser {
             advance();
             Node right = term();
             left = new BinaryOperatorNode(left, operatorToken, right);
+            tokenAssem.add(operatorToken);
         }
         return left;
     }
@@ -454,6 +462,7 @@ public class Parser {
             advance();
             Node right = arithmeticExpression();
             left = new BinaryOperatorNode(left, operatorToken, right);
+            tokenAssem.add(operatorToken);
         }
         
         return left;
@@ -476,6 +485,8 @@ public class Parser {
             advance();
             Evaluator evaluator = new Evaluator(expression().getNode(), this.symbolTable, functionSymbolTable);
             VarAssignNode node = new VarAssignNode(varName, String.valueOf(evaluator.evaluate()));
+            tokenAssem.add(varName);
+            tokenAssem.add(new Token(TokenType.EQUALS));
             
             return new SyntaxTree(node);
 

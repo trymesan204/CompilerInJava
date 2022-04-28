@@ -22,5 +22,6 @@ enum TokenType {
     NEWLINE,
     END,
     LSQUARE,
-    RSQUARE
+    RSQUARE,
+    REGISTERS, CONDITIONS
 }
