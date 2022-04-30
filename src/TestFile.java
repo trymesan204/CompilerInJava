@@ -37,7 +37,7 @@ public class TestFile {
         Lexer lexer = new Lexer(text);
         List<Token> tokens = lexer.makeTokens();
         
-        Parser parser = new Parser(tokens, globalSymbolTable, functionSymbolTable, tokensAssem);
+        Parser parser = new Parser(tokens, tokensAssem);
         SyntaxTree expression = parser.parse();
 
         System.out.println("--------------------");

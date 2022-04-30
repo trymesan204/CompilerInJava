@@ -1,21 +1,15 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
-import java.util.function.Function;
 
 public class Parser {
     List<Token> tokens;
     int index = -1;
     Token currentToken;
-    SymbolTable symbolTable;
     int advanceCount = 0;
-    FunctionSymbolTable functionSymbolTable;
     List<Token> tokenAssem = new ArrayList<>();
 
-    public Parser(List<Token> tokens, SymbolTable symbolTable, FunctionSymbolTable functionSymbolTable, List<Token> tokenAssem){
+    public Parser(List<Token> tokens, List<Token> tokenAssem){
         this.tokens = tokens;
-        this.symbolTable = symbolTable;
-        this.functionSymbolTable = functionSymbolTable;
         this.tokenAssem = tokenAssem;
         advance();
     }

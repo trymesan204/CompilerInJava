@@ -81,13 +81,6 @@ public class Assembly {
         return -1;
     }
 
-    private void printTokens(){
-        for (Token token: tokens){
-            System.out.println(token.type);
-        }
-        System.out.println("-----------------");
-    }
-
     private void removeToken(int position){
         tokens.remove(position+1);
         tokens.remove(position);
@@ -103,12 +96,10 @@ public class Assembly {
         int ifIndex = 0;
         int whileIndex = 0;
         int endLoopIndex = 0;
-        int exitFuncIndex = 0;
 
         do{
             operatorPosition = locateOperator();
             if(operatorPosition == -1 ) break;
-            //printTokens();
             switch(operator.type){
                 case PLUS:
                     System.out.println("mov ax, " + tokens.get(operatorPosition - 2).getValue());
@@ -217,6 +208,10 @@ public class Assembly {
                             stack.add(tokens.get(index));
 
                             index++;
+                        }
+
+                        for (int i = operatorPosition; i < index; i++){
+                            tokens.remove(operatorPosition);
                         }
 
                         while(!stack.empty()){
