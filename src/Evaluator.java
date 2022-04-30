@@ -69,7 +69,6 @@ public class Evaluator {
         if (root instanceof VarAccessNode){
             String name = (((VarAccessNode) root).getToken().getValue());
             String value = symbolTable.get(name);
-           //symbolTable.printAll();
 
             if(value == null){
                 throw new InvalidSyntaxException("variable "+name+" not defined");
@@ -80,14 +79,14 @@ public class Evaluator {
 
         if (root instanceof VarAssignNode){
             String name = (((VarAssignNode) root).getToken().getValue());
-            String value =(((VarAssignNode) root).getValueNode());
-            System.out.println("here1");
+            Node valueNode =(((VarAssignNode) root).getValueNode());
+
+            int value = evaluateExpression(valueNode);
             
 
-            symbolTable.set(name, value);
-            symbolTable.printAll();
+            symbolTable.set(name, String.valueOf(value));
 
-            return Integer.parseInt(value);
+            return value;
         }
 
         if (root instanceof ListNode){

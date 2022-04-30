@@ -10,6 +10,9 @@ public class Assembly {
     List<Token> falseConditions = new ArrayList<>();
     List<Token> exitConditions = new ArrayList<>();
     List<Token> ifConditions = new ArrayList<>();
+    List<Token> whileConditions = new ArrayList<>();
+    List<Token> endLoopConditions = new ArrayList<>();
+    List<Token> exitFunction = new ArrayList<>();
 
 
     public Assembly(List<Token> tokens){
@@ -24,6 +27,9 @@ public class Assembly {
             falseConditions.add(new Token(TokenType.CONDITIONS, "@FALSE"+i));
             exitConditions.add(new Token(TokenType.CONDITIONS,"@EXIT"+i));
             ifConditions.add(new Token(TokenType.CONDITIONS,"@if"+i));
+            whileConditions.add(new Token(TokenType.CONDITIONS,"@while"+i));
+            endLoopConditions.add( new Token(TokenType.CONDITIONS,"@EXIT"+i));
+            exitFunction.add(new Token(TokenType.CONDITIONS,"@EXITF"+ i));
         }
     }
 
@@ -58,7 +64,19 @@ public class Assembly {
                         return i;
                     if(currentToken.value.equals("end"))
                         return i;
-            }
+                    if(currentToken.value.equals("while"))
+                        return i;
+                    if(currentToken.value.equals("endif"))
+                        return i;
+                    if(currentToken.value.equals("func"))
+                        return i;
+                    if(currentToken.value.equals("endf"))
+                        return i;
+                case IDENTIFIER:
+                    if(tokens.get(i+1).type == TokenType.LEFTP){
+                        return i;
+                    }
+                }
         }
         return -1;
     }
@@ -83,9 +101,13 @@ public class Assembly {
         int falseIndex = 0;
         int exitIndex = 0;
         int ifIndex = 0;
+        int whileIndex = 0;
+        int endLoopIndex = 0;
+        int exitFuncIndex = 0;
 
         do{
             operatorPosition = locateOperator();
+            if(operatorPosition == -1 ) break;
             //printTokens();
             switch(operator.type){
                 case PLUS:
@@ -151,9 +173,57 @@ public class Assembly {
                     }else if(operator.value.equals("else")){
                         System.out.println(exitConditions.get(exitIndex).value+'\n');
                         System.out.println(falseConditions.get(falseIndex++).value);
-                    }else if(operator.value.equals("end")){
+                    }else if(operator.value.equals("endif")){
+                        if(falseIndex == ifIndex)
+                            System.out.println('\n'+falseConditions.get(exitIndex).value);
                         System.out.println('\n'+exitConditions.get(exitIndex).value+'\n');
                         exitIndex = exitIndex - 1;
+                    }else if(operator.value.equals("while")){
+                        System.out.println(whileConditions.get(whileIndex++).value);
+                        endLoopIndex = whileIndex - 1;
+                    }else if(operator.value.equals("end")){
+                        System.out.println("JMP "+whileConditions.get(endLoopIndex).value);
+                        System.out.println('\n'+falseConditions.get(falseIndex++).value);
+                        System.out.println('\n'+endLoopConditions.get(endLoopIndex).value+'\n');
+                        endLoopIndex = endLoopIndex - 1;
+                    }else if(operator.value.equals("func")){
+                        System.out.println("JMP @EXITF");
+                        System.out.println("@"+tokens.get(operatorPosition+1).value);
+                        if(tokens.get(operatorPosition + 2).type == TokenType.LEFTP){
+                            int index = operatorPosition + 3;
+                            while(tokens.get(index).type != TokenType.RIGHTP){
+                                System.out.println("mov " + tokens.get(index).value + ", pop");
+                                index++;
+                            }
+
+                            for (int i = operatorPosition + 1; i < index; i++){
+                                tokens.remove(i);
+                            }
+                        }
+                    }else if(operator.value.equals("endf")){
+                        System.out.println("JMP @CALL");
+                        System.out.println("@EXITF\n");
+                    }
+                    break;
+                case IDENTIFIER:
+                    if(tokens.get(operatorPosition + 1).type == TokenType.LEFTP){
+                        int index = operatorPosition + 2;
+                        Stack<Token> stack = new Stack<>();
+
+                        while(index < tokens.size()){
+                            if(tokens.get(index).type == TokenType.RIGHTP)
+                                break;
+
+                            stack.add(tokens.get(index));
+
+                            index++;
+                        }
+
+                        while(!stack.empty()){
+                            System.out.println("push "+stack.pop().getValue());
+                        }
+                        System.out.println("JMP @"+operator.getValue());
+                        System.out.println("@CALL");
                     }
                     break;
 
@@ -170,11 +240,11 @@ public class Assembly {
                 
                 removeToken(operatorPosition);
             }else{
-                tokens.add(operatorPosition-2, registers.get(registerIndex));
+                tokens.add(operatorPosition - 2, registers.get(registerIndex));
                 removeToken(operatorPosition);
             }
             
-        }while(tokens.size() >= 3);
+        }while(tokens.size() >= 3 );
 
     }
 

@@ -10,8 +10,6 @@ public class TestFile {
       globalSymbolTable.set("TRUE", "1");
       globalSymbolTable.set("FALSE", "0");
       globalSymbolTable.set("result", "1");
-      globalSymbolTable.set("i", "1");
-      globalSymbolTable.set("x","1");
 
       FunctionSymbolTable functionSymbolTable = new FunctionSymbolTable();
 
@@ -42,11 +40,16 @@ public class TestFile {
         Parser parser = new Parser(tokens, globalSymbolTable, functionSymbolTable, tokensAssem);
         SyntaxTree expression = parser.parse();
 
+        System.out.println("--------------------");
+        System.out.println("Assembly Code");
         Assembly assembly = new Assembly(tokensAssem);
         assembly.createAssembly();
 
-        //Evaluator evaluator = new Evaluator(expression.getNode(), globalSymbolTable, functionSymbolTable);
-        //System.out.println(evaluator.evaluate());
+
+        System.out.println("--------------------");
+        System.out.println("Output");
+        Evaluator evaluator = new Evaluator(expression.getNode(), globalSymbolTable, functionSymbolTable);
+        evaluator.evaluate();
       
     }
   }

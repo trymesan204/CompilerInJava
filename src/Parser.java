@@ -64,11 +64,11 @@ public class Parser {
                 Node statement = statements().getNode();
                 elseCase = statement;
 
-                if(currentToken.matches(TokenType.KEYWORD, "end")){
+                if(currentToken.matches(TokenType.KEYWORD, "endif")){
                     tokenAssem.add(currentToken);
                     advance();
                 }else{
-                    throw new InvalidSyntaxException("Expected 'end'");
+                    throw new InvalidSyntaxException("Expected 'endif'");
                 }
             }else{
                 Node expression = expression().getNode();
@@ -121,7 +121,7 @@ public class Parser {
             condExp.add(statement);
             cases.add(condExp);
 
-            if (currentToken.matches(TokenType.KEYWORD, "end")){
+            if (currentToken.matches(TokenType.KEYWORD, "endif")){
                 tokenAssem.add(currentToken);
                 advance();
             }else{
@@ -164,12 +164,15 @@ public class Parser {
         if(!currentToken.matches(TokenType.KEYWORD, "then")){
             new InvalidSyntaxException("Expected then ");
         }
+        
+        advance();
 
         if(currentToken.getType() == TokenType.NEWLINE){
             advance();
 
             Node body = statements().getNode();
 
+            tokenAssem.add(currentToken);
             if(!currentToken.matches(TokenType.KEYWORD, "end")){
                 new InvalidSyntaxException("Expected end ");
             }
@@ -242,6 +245,7 @@ public class Parser {
         if(!currentToken.matches(TokenType.KEYWORD, "func")){
             new InvalidSyntaxException("Expected func ");
         }
+        tokenAssem.add(currentToken);
 
         advance();
         
@@ -250,9 +254,11 @@ public class Parser {
         }
 
         Token varNameToken = currentToken;
+        tokenAssem.add(varNameToken);
 
         advance();
 
+        tokenAssem.add(currentToken);
         if (!(currentToken.getType() == TokenType.LEFTP)){
             throw new InvalidSyntaxException("Expected (");
         }
@@ -262,6 +268,8 @@ public class Parser {
 
         if(currentToken.getType() == TokenType.IDENTIFIER){
             argNameTokens.add(currentToken);
+            tokenAssem.add(currentToken);
+
             advance();
 
             while (currentToken.getType() == TokenType.COMMA){
@@ -272,13 +280,19 @@ public class Parser {
                 }
 
                 argNameTokens.add(currentToken);
+                tokenAssem.add(currentToken);
+
                 advance();
             }
+
+            tokenAssem.add(currentToken);
 
             if (!(currentToken.getType() == TokenType.RIGHTP)){
                 throw new InvalidSyntaxException("Expected ')' or ','");
             }
         }else{
+            tokenAssem.add(currentToken);
+
             if (!(currentToken.getType() == TokenType.RIGHTP)){
                 throw new InvalidSyntaxException("Expected ')'");
             }
@@ -302,8 +316,10 @@ public class Parser {
         advance();
 
         Node body = statements().getNode();
-        if(!currentToken.matches(TokenType.KEYWORD, "end")){
-            throw new InvalidSyntaxException("Expected end");
+
+        tokenAssem.add(currentToken);
+        if(!currentToken.matches(TokenType.KEYWORD, "endf")){
+            throw new InvalidSyntaxException("Expected endf");
         }
 
         advance();
@@ -345,6 +361,7 @@ public class Parser {
             advance();
             return new NumberNode(token);
         }else if(currentToken.getType() == TokenType.IDENTIFIER){
+            tokenAssem.add(currentToken);
             advance();
             return new VarAccessNode(token);
         }else if (currentToken.getType() == TokenType.LEFTP){
@@ -364,14 +381,18 @@ public class Parser {
             Node ifExpr = ifExpression();
             return ifExpr;
         }else if (currentToken.matches(TokenType.KEYWORD, "while")){
+            tokenAssem.add(currentToken);
             return whileExpression();
         }else if (currentToken.matches(TokenType.KEYWORD, "for")){
+            tokenAssem.add(currentToken);
             return forExpression();
         }else if (currentToken.matches(TokenType.KEYWORD, "func")){
             return funcDef();
         }else if (currentToken.matches(TokenType.KEYWORD, "else") || 
                   currentToken.matches(TokenType.KEYWORD, "elif") ||
-                  currentToken.matches(TokenType.KEYWORD, "end")){
+                  currentToken.matches(TokenType.KEYWORD, "endif") ||
+                  currentToken.matches(TokenType.KEYWORD, "end") || 
+                  currentToken.matches(TokenType.KEYWORD, "endf") ){
             return null;
         }
         throw new InvalidSyntaxException("why wrong?");
@@ -381,6 +402,7 @@ public class Parser {
         Node left = atom();
         List<Node> argNodeTokens = new ArrayList<>();
         if (currentToken.getType() == TokenType.LEFTP){
+            tokenAssem.add(currentToken);
             advance();
 
             if (currentToken.getType() == TokenType.RIGHTP){
@@ -391,6 +413,8 @@ public class Parser {
                     advance();
                     argNodeTokens.add(expression().getNode());
                 }
+
+                tokenAssem.add(currentToken);
                 if (currentToken.getType() != TokenType.RIGHTP){
                     throw new InvalidSyntaxException("Expected ')'");
                 }
@@ -483,8 +507,8 @@ public class Parser {
                 throw new InvalidSyntaxException("Expected '='");
             }
             advance();
-            Evaluator evaluator = new Evaluator(expression().getNode(), this.symbolTable, functionSymbolTable);
-            VarAssignNode node = new VarAssignNode(varName, String.valueOf(evaluator.evaluate()));
+            
+            VarAssignNode node = new VarAssignNode(varName, expression().getNode());
             tokenAssem.add(varName);
             tokenAssem.add(new Token(TokenType.EQUALS));
             
@@ -496,8 +520,7 @@ public class Parser {
             advance();
             advance();
 
-            Evaluator evaluator = new Evaluator(expression().getNode(), this.symbolTable, functionSymbolTable);
-            VarAssignNode node = new VarAssignNode(varName, String.valueOf(evaluator.evaluate()));
+            VarAssignNode node = new VarAssignNode(varName, expression().getNode());
             return new SyntaxTree(node);
 
         }

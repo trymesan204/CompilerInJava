@@ -106,6 +106,8 @@ public class Lexer {
         keywords.add("for");
         keywords.add("to");
         keywords.add("end");
+        keywords.add("endif");
+        keywords.add("endf");
         if(keywords.contains(word)){
             return new Token(TokenType.KEYWORD, word);
         }else{
