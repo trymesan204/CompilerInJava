@@ -389,7 +389,7 @@ public class Parser {
                   currentToken.matches(TokenType.KEYWORD, "endf") ){
             return null;
         }
-        throw new InvalidSyntaxException("why wrong?");
+        throw new InvalidSyntaxException("Invalid token");
     }
 
     public Node call(){

@@ -71,8 +71,7 @@ public class Lexer {
             }else if (Character.isLetter(currentChar)){
                 tokens.add(makeWord());
             }else{
-                advance();
-                throw new TokenTypeException();
+                throw new TokenTypeException(currentChar);
             }
         }
 

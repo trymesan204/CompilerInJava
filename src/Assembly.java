@@ -73,6 +73,7 @@ public class Assembly {
                     if(currentToken.value.equals("endf"))
                         return i;
                 case IDENTIFIER:
+                    if((i+1) >= tokens.size()) continue;
                     if(tokens.get(i+1).type == TokenType.LEFTP){
                         return i;
                     }

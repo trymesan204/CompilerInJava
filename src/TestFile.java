@@ -42,12 +42,14 @@ public class TestFile {
 
         System.out.println("--------------------");
         System.out.println("Assembly Code");
+        System.out.println("--------------------");
         Assembly assembly = new Assembly(tokensAssem);
         assembly.createAssembly();
 
 
-        System.out.println("--------------------");
+        System.out.println("\n--------------------");
         System.out.println("Output");
+        System.out.println("--------------------");
         Evaluator evaluator = new Evaluator(expression.getNode(), globalSymbolTable, functionSymbolTable);
         evaluator.evaluate();
       

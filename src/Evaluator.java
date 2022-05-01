@@ -42,7 +42,7 @@ public class Evaluator {
             else if (((BinaryOperatorNode) root).getToken().getType() == TokenType.DIV)
             {
                 if (right == 0){
-                    throw new InvalidSyntaxException("Cannot Divide by zero");
+                    throw new RunTimeException("Cannot Divide by zero");
                 }else{
                     return left / right;
                 }
@@ -69,7 +69,7 @@ public class Evaluator {
             String value = symbolTable.get(name);
 
             if(value == null){
-                throw new InvalidSyntaxException("variable "+name+" not defined");
+                throw new RunTimeException("variable "+name+" not defined");
             }
 
             return Integer.parseInt(value);
@@ -96,11 +96,12 @@ public class Evaluator {
                 elements.add(evaluateExpression(elementNode));
             }
 
-            if(elements.size() == 1){
-                System.out.println(elements.get(0));
-            }else{
-                System.out.println(elements);
-            }
+            // if(elements.size() == 1){
+            //     System.out.println(elements.get(0));
+            // }else{
+            //     System.out.println(elements);
+            // }
+            System.out.println(elements.get(0));
             return 1;
         }
 
@@ -148,7 +149,6 @@ public class Evaluator {
 
                 elements.add(evaluateExpression(((ForNode)root).getBody()));
             }
-            System.out.println(elements);
             return 1;
         }
 
@@ -167,9 +167,9 @@ public class Evaluator {
             List<Token> argNames = funcDefNode.getArgNameToken();
 
             if ( argNames.size() > argNodes.size()){
-                throw new InvalidSyntaxException("Less than required arguments passed");
+                throw new RunTimeException("Less than required arguments passed");
             } else if ( argNames.size() < argNodes.size()){
-                throw new InvalidSyntaxException("More than required arguments passed");
+                throw new RunTimeException("More than required arguments passed");
             }   
 
 
@@ -186,7 +186,7 @@ public class Evaluator {
             
         }
 
-        throw new InvalidSyntaxException("Unknown Operator");
+        throw new RunTimeException("Unknown Operator");
     }
 
 }
